@@ -27,7 +27,7 @@ from fastapi.responses import JSONResponse, StreamingResponse
 
 from app.analysis.socioeconomic_analys import analyze_knn_allocation
 from app.config import settings
-from ..lib.convert_numpy import convert_numpy_types
+from app.lib.convert_numpy import convert_numpy_types
 from app.methods.knn_model import allocate_demands_knn
 from app.preprocessing.common import prepare_data
 from app.routes.eda_allocation_route import (
