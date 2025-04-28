@@ -1,40 +1,34 @@
-# === STAGE 1: BUILD ===
-FROM condaforge/miniforge3:23.3.1-0 AS builder
-
-# garante que /opt/conda/bin (onde está o micromamba) fique no PATH
-ENV PATH=/opt/conda/bin:$PATH
-
-WORKDIR /app
-
-# copia o yml do seu ambiente
-COPY environment.full.yml .
-
-# instala tudo e limpa caches
-RUN micromamba install -y -f environment.full.yml \
- && micromamba clean --all --yes
-
-# === STAGE 2: RUNTIME ===
-FROM condaforge/miniforge3:23.3.1-0
-
-# de novo, garantir PATH
-ENV PATH=/opt/conda/bin:$PATH \
-    PYTHONUNBUFFERED=1 \
-    PORT=${PORT:-8000}
-
-WORKDIR /app
-
-# copia TODO o conda (*) do builder
-COPY --from=builder /opt/conda /opt/conda
-
-# copia seu código
-COPY backend ./backend
-COPY start-backend.sh .
-
-# torna seu script executável
-RUN chmod +x start-backend.sh
-
-# expõe a porta que o Railway injeta
-EXPOSE ${PORT}
-
-# entrypoint
-CMD ["bash", "-lc", "./start-backend.sh"]
+# ---------- STAGE 1  :  build do ambiente -----------------
+    FROM condaforge/miniforge3:23.3.1-0 AS builder
+    ENV PATH=/opt/conda/bin:$PATH
+    WORKDIR /build
+    
+    COPY environment.full.yml .
+    RUN micromamba install -y -f environment.full.yml \
+     && micromamba clean --all --yes
+    
+    # ---------- STAGE 2  :  imagem de runtime -----------------
+    FROM condaforge/miniforge3:23.3.1-0
+    ENV PATH=/opt/conda/bin:$PATH \
+        PYTHONUNBUFFERED=1 \
+        PORT=${PORT:-8000}
+    
+    WORKDIR /app
+    
+    # copia todo o env já pronto
+    COPY --from=builder /opt/conda /opt/conda
+    
+    # copia **backend e frontend**
+    COPY backend   ./backend
+    COPY frontend  ./frontend
+    
+    # script de arranque
+    COPY start.sh .
+    RUN chmod +x start.sh
+    
+    # deixa o Python encontrar os dois pacotes
+    ENV PYTHONPATH=/app/backend:/app/frontend
+    
+    EXPOSE ${PORT}
+    CMD ["bash","./start.sh"]
+    
