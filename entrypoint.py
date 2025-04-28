@@ -1,6 +1,18 @@
 #!/usr/bin/env python3
 import os
+import sys
 import uvicorn
+
+# ──────────────────────────────────────────────
+# Torna /app/backend visível para imports "from app.…"
+# (o caminho é calculado de forma robusta a partir do próprio arquivo)
+# ──────────────────────────────────────────────
+BASE_DIR = os.path.dirname(__file__)          # /app
+BACKEND_DIR = os.path.join(BASE_DIR, "backend")
+if BACKEND_DIR not in sys.path:
+    sys.path.append(BACKEND_DIR)
+
+# Agora os imports funcionam
 from backend.app.main import app as api_app
 from frontend.main     import app as ui_app
 
@@ -8,7 +20,7 @@ from frontend.main     import app as ui_app
 api_app.mount("/", ui_app, name="ui")
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8000))
+    port    = int(os.environ.get("PORT", 8000))
     workers = os.cpu_count() or 1
     uvicorn.run(
         api_app,
