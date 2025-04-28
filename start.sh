@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 set -e
 
-# só dispara o seu entrypoint Python que monta os dois FastAPI.apps e roda o uvicorn
-exec python entrypoint.py
+# não precisa mais montar dinamicamente, você já incluiu isso em backend/app/main.py
+exec uvicorn app.main:app \
+     --host 0.0.0.0 \
+     --port "${PORT:-8000}" \
+     --workers $(nproc)

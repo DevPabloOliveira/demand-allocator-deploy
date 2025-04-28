@@ -1,20 +1,25 @@
 #!/usr/bin/env python3
 import os
-import uvicorn
+import multiprocessing
 
-# sys.path.insert(0, os.path.join(os.getcwd(), "backend"))
-# sys.path.insert(0, os.path.join(os.getcwd(), "frontend"))
+# Importe primeiro as duas FastAPI apps
+from app.main      import app as api_app
+from frontend.main import app as ui_app
 
-# este import agora encontra /app/backend/app/main.py
-from app.main import app as api_app
-
-# este import encontra /app/frontend/main.py
-from main import app as ui_app
-
-# monta a UI do frontend em /
+# Monte a UI no root da API
 api_app.mount("/", ui_app, name="ui")
 
 if __name__ == "__main__":
     import uvicorn
+
+    # Porta vindo do Railway ou fallback
     port = int(os.environ.get("PORT", 8000))
-    uvicorn.run(api_app, host="0.0.0.0", port=port, workers=os.cpu_count())
+    # Número de workers dinamicamente igual ao n.º de CPUs
+    workers = multiprocessing.cpu_count()
+
+    uvicorn.run(
+        api_app,
+        host="0.0.0.0",
+        port=port,
+        workers=workers,
+    )

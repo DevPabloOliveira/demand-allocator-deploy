@@ -1,47 +1,45 @@
-# ──────────────────────────────────────────────
-# STAGE 1 – BUILD (tem o micromamba já instalado)
-# ──────────────────────────────────────────────
+# ──────────────────────────────────────────────────────────────────────────
+# STAGE 1 – BUILD (instala dependências com micromamba)
+# ──────────────────────────────────────────────────────────────────────────
 FROM mambaorg/micromamba:1.5.7-bullseye AS builder
 
-# garante que o micromamba esteja no PATH
-ENV PATH="/opt/conda/bin:${PATH}"
+# Ativa o micromamba automaticamente no PATH
+ENV MAMBA_ROOT_PREFIX=/opt/conda \
+    MAMBA_DOCKERFILE_ACTIVATE=1
 
 WORKDIR /build
 
-# copia o environment.yml
+# Copia o seu environment.yml e instala tudo
 COPY environment.full.yml .
-
-# instala as dependências e limpa caches
 RUN micromamba install -y -n base -f environment.full.yml \
  && micromamba clean --all --yes
 
-# ──────────────────────────────────────────────
-# STAGE 2 – RUNTIME
-# ──────────────────────────────────────────────
-FROM condaforge/miniforge3:23.3.1-0
+# ──────────────────────────────────────────────────────────────────────────
+# STAGE 2 – RUNTIME (só o runtime leve, com Python já instalado)
+# ──────────────────────────────────────────────────────────────────────────
+FROM mambaorg/micromamba:1.5.7-bullseye
 
-# ajusta PATH e variáveis de ambiente
-ENV PATH="/opt/conda/bin:${PATH}" \
+# Define variáveis de ambiente
+ENV MAMBA_ROOT_PREFIX=/opt/conda \
+    PATH=/opt/conda/bin:$PATH \
     PYTHONUNBUFFERED=1 \
-    PORT=${PORT:-8000} \
-    PYTHONPATH="/app/backend:/app/frontend:${PYTHONPATH}"
+    PORT=${PORT:-8000}
 
 WORKDIR /app
 
-# copia todo o conda do builder
+# Copia o ambiente já montado no builder
 COPY --from=builder /opt/conda /opt/conda
 
- # copia todo o conda do builder
- COPY --from=builder /opt/conda /opt/conda
+# Copia o código da API e do frontend
+COPY backend   ./backend
+COPY frontend  ./frontend
 
- # copia o backend e frontend
- COPY backend   ./backend
- COPY frontend  ./frontend
- COPY entrypoint.py .
- COPY --chmod=755 start.sh .
+# Copia o entrypoint que monta API + UI e dispara o Uvicorn
+COPY entrypoint.py .
+RUN chmod +x entrypoint.py
 
-# expõe a porta injetada pelo Railway
+# Abre a porta definida em PORT
 EXPOSE ${PORT}
 
-# entrypoint único
-CMD ["bash","-lc","./start.sh"]
+# Ao subir, executa o entrypoint.py
+CMD ["./entrypoint.py"]
