@@ -3,28 +3,23 @@ import os
 import sys
 import uvicorn
 
-# ──────────────────────────────────────────────
-# Torna /app/backend visível para imports "from app.…"
-# (o caminho é calculado de forma robusta a partir do próprio arquivo)
-# ──────────────────────────────────────────────
-BASE_DIR = os.path.dirname(__file__)          # /app
-BACKEND_DIR = os.path.join(BASE_DIR, "backend")
-if BACKEND_DIR not in sys.path:
-    sys.path.append(BACKEND_DIR)
+# ─── GARANTE QUE O NOSSO "app" TEM PRIORIDADE ─────────────────────
+BASE_DIR     = os.path.dirname(__file__)      # /app
+BACKEND_PATH = os.path.join(BASE_DIR, "backend")
+if BACKEND_PATH not in sys.path:              # insere na posição 0
+    sys.path.insert(0, BACKEND_PATH)
 
-# Agora os imports funcionam
+# agora os imports locais prevalecem sobre quaisquer pacotes externos
 from backend.app.main import app as api_app
 from frontend.main     import app as ui_app
+# ───────────────────────────────────────────────────────────────────
 
-# Monta o UI do frontend na raiz da API
 api_app.mount("/", ui_app, name="ui")
 
 if __name__ == "__main__":
-    port    = int(os.environ.get("PORT", 8000))
-    workers = os.cpu_count() or 1
     uvicorn.run(
         api_app,
         host="0.0.0.0",
-        port=port,
-        workers=workers
+        port=int(os.getenv("PORT", 8000)),
+        workers=os.cpu_count() or 1
     )
