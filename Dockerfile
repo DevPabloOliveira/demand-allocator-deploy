@@ -1,45 +1,40 @@
-# ──────────────────────────────────────────────────────────────────────────
-# STAGE 1 – BUILD (instala dependências com micromamba)
-# ──────────────────────────────────────────────────────────────────────────
+# ──────────────────────────────────────────────
+# STAGE 1 – BUILD (micromamba já vem instalado)
+# ──────────────────────────────────────────────
 FROM mambaorg/micromamba:1.5.7-bullseye AS builder
 
-# Ativa o micromamba automaticamente no PATH
-ENV MAMBA_ROOT_PREFIX=/opt/conda \
-    MAMBA_DOCKERFILE_ACTIVATE=1
+ENV PATH="/opt/conda/bin:${PATH}"
 
 WORKDIR /build
 
-# Copia o seu environment.yml e instala tudo
+# Copia e instala as dependências do ambiente
 COPY environment.full.yml .
 RUN micromamba install -y -n base -f environment.full.yml \
  && micromamba clean --all --yes
 
-# ──────────────────────────────────────────────────────────────────────────
-# STAGE 2 – RUNTIME (só o runtime leve, com Python já instalado)
-# ──────────────────────────────────────────────────────────────────────────
-FROM mambaorg/micromamba:1.5.7-bullseye
+# ──────────────────────────────────────────────
+# STAGE 2 – RUNTIME
+# ──────────────────────────────────────────────
+FROM condaforge/miniforge3:23.3.1-0
 
-# Define variáveis de ambiente
-ENV MAMBA_ROOT_PREFIX=/opt/conda \
-    PATH=/opt/conda/bin:$PATH \
+ENV PATH="/opt/conda/bin:${PATH}" \
     PYTHONUNBUFFERED=1 \
     PORT=${PORT:-8000}
 
 WORKDIR /app
 
-# Copia o ambiente já montado no builder
+# Copia o runtime do conda já preparado
 COPY --from=builder /opt/conda /opt/conda
 
-# Copia o código da API e do frontend
+# Copia o código-fonte
 COPY backend   ./backend
 COPY frontend  ./frontend
 
-# Copia o entrypoint que monta API + UI e dispara o Uvicorn
-COPY entrypoint.py .
-RUN chmod +x entrypoint.py
+# Copia o entrypoint e o script de start (já executáveis)
+COPY --chmod=0755 entrypoint.py start.sh ./
 
-# Abre a porta definida em PORT
+# Expõe a porta em que a aplicação vai escutar
 EXPOSE ${PORT}
 
-# Ao subir, executa o entrypoint.py
-CMD ["./entrypoint.py"]
+# Usa o entrypoint para montar API + UI e rodar o Uvicorn
+ENTRYPOINT ["./entrypoint.py"]
