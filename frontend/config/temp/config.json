@@ -1,0 +1,22 @@
+{
+  "siteTitle": "VisKepler",
+  "websiteTitle": "My SisKepler App",
+  "maps": [
+    {
+      "data_ids": {
+        "csv_file": "knn_20250427_231014.csv"
+      },
+      "label": "Alocação – APUÍ/AM",
+      "link": "/map/knn_20250427_231014",
+      "description": "Fluxo Demanda → UBS (pandana_real_distance) gerado em 20250427_231014"
+    },
+    {
+      "data_ids": {
+        "csv_file": "knn_20250427_231227.csv"
+      },
+      "label": "Alocação – ATALAIA DO NORTE/AM",
+      "link": "/map/knn_20250427_231227",
+      "description": "Fluxo Demanda → UBS (geodesic) gerado em 20250427_231227"
+    }
+  ]
+}

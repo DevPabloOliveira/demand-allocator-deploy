@@ -1,0 +1,14 @@
+{
+  "siteTitle": "VisKepler",
+  "websiteTitle": "My SisKepler App",
+  "maps": [
+    {
+      "data_ids": {
+        "csv_file": "COMBINEDALLOCATIONS.csv"
+      },
+      "label": "Mapa de Distência de Alocações Brasil",
+      "link": "/COMBINEDALLOCATIONS",
+      "description": "Mapa de distância das alocações com o deslocamento dos setores sencitários até as UBSs"
+    }
+  ]
+}
