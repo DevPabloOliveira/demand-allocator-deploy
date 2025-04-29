@@ -26,12 +26,23 @@ WORKDIR /app
 # Copia o runtime do conda já preparado
 COPY --from=builder /opt/conda /opt/conda
 
-# Copia o código-fonte
-COPY backend   ./backend
-COPY frontend  ./frontend
-
-# Copia o entrypoint e o script de start (já executáveis)
-COPY --chmod=0755 entrypoint.py start.sh ./
+# --- copy backend and frontend (normal) ---
+    COPY backend   ./backend
+    COPY frontend  ./frontend
+    
+    # --- copy backend data
+    COPY backend/data ./backend/data
+    
+    # --- copy frontend data and config (SEM copiar temp diretamente)
+    COPY frontend/data ./frontend/data
+    COPY frontend/config ./frontend/config
+    
+    # --- create temp directories at build time ---
+    RUN mkdir -p /app/frontend/data/temp && mkdir -p /app/frontend/config/temp
+    
+    # --- copy entrypoint/start scripts
+    COPY --chmod=0755 entrypoint.py start.sh ./
+    
 
 # Expõe a porta em que a aplicação vai escutar
 EXPOSE ${PORT}

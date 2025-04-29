@@ -2,9 +2,9 @@ import logging
 import geopandas as gpd
 from unidecode import unidecode
 
-from app.preprocessing.geoprocessing import process_geometries
-from app.preprocessing.utils import infer_column
-from app.config import settings
+from .geoprocessing import process_geometries
+from .utils import infer_column
+from ..config import settings
 
 logger = logging.getLogger(__name__)
 

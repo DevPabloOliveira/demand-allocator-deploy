@@ -25,12 +25,12 @@ import pandas as pd
 from fastapi import APIRouter, Query
 from fastapi.responses import JSONResponse, StreamingResponse
 
-from app.analysis.socioeconomic_analys import analyze_knn_allocation
-from app.config import settings
-from app.lib.convert_numpy import convert_numpy_types
-from app.methods.knn_model import allocate_demands_knn
-from app.preprocessing.common import prepare_data
-from app.routes.eda_allocation_route import (
+from ..analysis.socioeconomic_analys import analyze_knn_allocation
+from ..config import settings
+from ..lib.convert_numpy import convert_numpy_types
+from ..methods.knn_model import allocate_demands_knn
+from ..preprocessing.common import prepare_data
+from .eda_allocation_route import(
     analyze_allocation,
     create_allocation_charts,
     create_coverage_stats,

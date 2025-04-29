@@ -33,5 +33,6 @@ if __name__ == "__main__":
         api_app,
         host="0.0.0.0",
         port=int(os.getenv("PORT", 8000)),
-        workers=os.cpu_count() or 1
+        workers=1     
+
     )

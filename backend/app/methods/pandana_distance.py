@@ -3,8 +3,8 @@ import pandas as pd
 import numpy as np
 from unidecode import unidecode
 
-from app.preprocessing.network import compute_distance_matrix
-from app.methods.geodesic_distance import calculate_geodesic_distance
+from ..preprocessing.network import compute_distance_matrix
+from .geodesic_distance import calculate_geodesic_distance
 
 logger = logging.getLogger(__name__)
 

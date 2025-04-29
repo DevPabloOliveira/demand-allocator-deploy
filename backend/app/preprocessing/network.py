@@ -14,8 +14,8 @@ import warnings
 from concurrent.futures import ThreadPoolExecutor
 import logging
 
-from app.preprocessing.utils import infer_column
-from app.config import settings
+from .utils import infer_column
+from ..config import settings
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

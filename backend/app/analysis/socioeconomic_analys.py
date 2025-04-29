@@ -7,7 +7,7 @@ from io import BytesIO
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from reportlab.lib.utils import ImageReader
-from app.config import settings
+from ..config import settings
 from unidecode import unidecode
 
 logger = logging.getLogger(__name__)

@@ -4,9 +4,9 @@ import os
 from fastapi import HTTPException
 
 
-from app.methods.geodesic_distance import geodesic_distance_matrix
-from app.methods.pandana_distance import pandana_distance_matrix
-from app.methods.knn_allocation import select_knn_from_distance_matrix, join_knn_with_geometries
+from .geodesic_distance import geodesic_distance_matrix
+from .pandana_distance import pandana_distance_matrix
+from .knn_allocation import select_knn_from_distance_matrix, join_knn_with_geometries
 
 logger = logging.getLogger(__name__)
 

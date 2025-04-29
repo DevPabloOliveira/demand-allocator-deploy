@@ -11,20 +11,31 @@ import json
 
 import glob, time
 
-CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-WEB_DIR = os.path.join(CURRENT_DIR, "web")
-ASSETS_DIR = os.path.join(WEB_DIR, "assets")
+import pathlib
+BASE_DIR  = pathlib.Path(__file__).parent
+WEB_DIR   = BASE_DIR / "web"
+ASSETS_DIR = WEB_DIR / "assets"
 
-templates = Jinja2Templates(directory="templates")
+TEMPLATES_DIR = WEB_DIR / "templates"      
+templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
 # ---- Kepler Configurations ----
-from config.shared import read_configs, load_user_config
+from frontend.config.shared import read_configs, load_user_config
 
 # ---- Map Libraries ----
-from lib.map_utils import create_kepler_map, get_dataId_from_config
+from frontend.lib.map_utils import create_kepler_map, get_dataId_from_config
 
 # ---- Map Loader ----
-from data.load_data import read_geojsons
+from frontend.data.load_data import read_geojsons
+
+
+import pathlib
+BASE_DIR     = pathlib.Path(__file__).parent          # /app/frontend
+CONFIG_DIR   = BASE_DIR / "config"                    # /app/frontend/config
+DATA_DIR     = BASE_DIR / "data"                      # /app/frontend/data
+TEMP_DIR     = DATA_DIR / "temp"
+CONFIG_TEMP  = CONFIG_DIR / "temp"
+
 
 # ---- Global Configuration ----
 global_config = {"maps": []}
@@ -87,46 +98,62 @@ def create_route_function(map_config):
 # Function to populate the global configuration and load map data
 def populate_config():
    global global_maps
-   global_maps = read_geojsons("./data", "./data/temp", "./config/temp")
+   global_maps = read_geojsons(str(DATA_DIR),
+                            str(TEMP_DIR),
+                            str(CONFIG_TEMP))
    
    # Adding siteTitle to global_config from user configuration
    global_config["siteTitle"] = user_config.get("siteTitle", "Default Title")
 
    # Loop through each map configuration from user config
-   for map_config in user_config["maps"]:
-       data_ids = map_config["data_ids"]
-       link = map_config["link"]
-       label = map_config["label"]
+   # --- loop por cada map_config do user_config -------------------------
+for map_config in user_config["maps"]:
+    data_ids = map_config["data_ids"]
+    link     = map_config["link"]
+    label    = map_config["label"]
 
-       # Find the corresponding configuration from available configs
-       config = next(
-           (
-               config
-               for config in read_configs("./config")
-               if any(data_id in get_dataId_from_config(config) for data_id in data_ids.values())
-           ),
-           None,
-       )
+    # procura o JSON de configuração que contenha pelo menos um dos dataId
+    config = next(
+        (
+            cfg                                              # ← resultado
+            for cfg in read_configs(str(CONFIG_DIR))         # ← percorre arquivos
+            if any(                                         
+                data_id in get_dataId_from_config(cfg)       # ← condição
+                for data_id in data_ids.values()
+            )
+        ),
+        None,                                                # valor default
+    )
 
-       # Check if data files exist in global maps and add to the global configuration
-       if data_ids.get('geojson_file') in global_maps or data_ids.get('csv_file') in global_maps:
-           global_config["maps"].append({
-               "data_ids": data_ids,
-               "link": link,
-               "label": label,
-               "description": map_config.get("description", ""),
-               "config": config,
-           })
+    # se achar o arquivo (ou csv) respectivo, adiciona ao global_config
+    if (
+        data_ids.get("geojson_file") in global_maps
+        or data_ids.get("csv_file") in global_maps
+    ):
+        global_config["maps"].append(
+            {
+                "data_ids":    data_ids,
+                "link":        link,
+                "label":       label,
+                "description": map_config.get("description", ""),
+                "config":      config,
+            }
+        )
+
 
 populate_config()
 
 # ---- API ENTRYPOINT ----
 
-templates = Jinja2Templates(directory="web/templates")
-
 app = FastAPI()
 
-app.mount("/assets", StaticFiles(directory=ASSETS_DIR), name="assets")
+from fastapi.staticfiles import StaticFiles
+
+app.mount(
+    "/assets",
+    StaticFiles(directory=str(ASSETS_DIR)),
+    name="assets"          #  ← ESSENCIAL!
+)
 
 @app.get("/", response_class=HTMLResponse)
 async def root(request: Request):

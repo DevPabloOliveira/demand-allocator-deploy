@@ -1,32 +1,52 @@
+# frontend/config/shared.py
+
 import json
 import os
+from pathlib import Path
 from os import listdir
 from os.path import isfile, join
 
-# Get the list of configuration files
-def read_configs(config_path):
-    only_files = [f for f in listdir(config_path) if isfile(join(config_path, f))]
-    # filter json files
-    json_files = [f for f in only_files if f.lower().endswith(".json")]
-    configs = []
+# --- Diretórios base -------------------------------------------------
+BASE_DIR    = Path(__file__).resolve().parent          # /app/frontend/config
+TEMP_DIR    = BASE_DIR / "temp"                        # /app/frontend/config/temp
+DEFAULT_CFG = TEMP_DIR / "config.json"                 # <- Corrigido aqui!
 
-    for json_file in json_files:
-        file_path = os.path.join(config_path, json_file)
+# --------------------------------------------------------------------
+def read_configs(config_path: str | os.PathLike | None = None):
+    """
+    Lê todos os *.json* dentro de *config_path* (padrão = diretório deste
+    arquivo) e devolve uma lista de dicionários.
+    """
+    if config_path is None:
+        config_path = BASE_DIR
+    config_path = Path(config_path)
+
+    configs = []
+    for filename in listdir(config_path):
+        if not filename.lower().endswith(".json"):
+            continue
+        filepath = config_path / filename
+        if not isfile(filepath):
+            continue
         try:
-            with open(file_path, "r", encoding="utf-8") as f:
-                config = json.load(f)
-                configs.append(config)
-        except json.JSONDecodeError as e:
-            print(f"Error decoding JSON from file {file_path}: {e}")
+            with open(filepath, "r", encoding="utf-8") as f:
+                configs.append(json.load(f))
         except Exception as e:
-            print(f"Error reading file {file_path}: {e}")
+            print(f"[WARN] erro lendo {filepath}: {e}")
     return configs
 
-def load_user_config():
-    try:
-        with open("./config/config.json", "r", encoding="utf-8") as f:
-            return json.load(f)
-    except json.JSONDecodeError as e:
-        print(f"Error decoding JSON from user config file: {e}")
-    except Exception as e:
-        print(f"Error reading user config file: {e}")
+
+def load_user_config() -> dict:
+    """
+    Devolve o conteúdo do *config.json* principal em TEMP; se não existir,
+    devolve dict vazio com estrutura padrão.
+    """
+    if DEFAULT_CFG.exists():
+        try:
+            with open(DEFAULT_CFG, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception as e:
+            print(f"[WARN] erro lendo {DEFAULT_CFG}: {e}")
+
+    # fallback (caso o arquivo esteja ausente ou corrompido)
+    return {"siteTitle": "VisKepler", "maps": []}

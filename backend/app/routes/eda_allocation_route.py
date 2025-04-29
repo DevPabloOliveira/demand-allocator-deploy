@@ -9,7 +9,7 @@ import zipfile
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from reportlab.lib.utils import ImageReader
-from app.config import settings
+from ..config import settings
 from pandas.plotting import table
 import numpy as np
 from matplotlib.patches import Patch

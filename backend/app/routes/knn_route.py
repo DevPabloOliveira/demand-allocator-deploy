@@ -11,10 +11,10 @@ import zipfile
 from fastapi import APIRouter, UploadFile, File, Query, HTTPException
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from enum import Enum
-from app.preprocessing.common import prepare_data
-from app.methods.knn_model import allocate_demands_knn
+from ..preprocessing.common import prepare_data
+from ..methods.knn_model import allocate_demands_knn
 # Importa as funções de EDA (do módulo eda_allocation_route ou diretamente)
-from app.routes.eda_allocation_route import (
+from .eda_allocation_route import(
     analyze_allocation,
     create_allocation_charts,
     create_coverage_stats,
@@ -81,7 +81,7 @@ def allocate_demands_knn_api(
 
     # Função auxiliar para chamar prepare_data usando os bytes lidos
     def prepare_data_from_bytes(state: str = "", city_filter: str = ""):
-        from app.preprocessing.common import prepare_data
+        from ..preprocessing.common import prepare_data
         from io import BytesIO
         class FakeUploadFile:
             def __init__(self, content):
